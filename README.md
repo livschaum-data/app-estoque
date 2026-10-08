@@ -1,6 +1,6 @@
 # Casa em Ordem
 
-Aplicação web responsiva para organizar despensa, itens de beleza e remédios por local da casa. As categorias iniciais de beleza e remédios foram retiradas das abas de categoria das planilhas que acompanham este projeto. Os dados e históricos das planilhas não são importados.
+Aplicação web responsiva para organizar despensa, itens de beleza e remédios por local da casa. As categorias iniciais de beleza e remédios vieram das planilhas de referência. Os dados pessoais das planilhas não fazem parte do app público; a carga inicial é preparada separadamente para a conta Supabase da usuária.
 
 ## Abrir e usar
 
@@ -24,5 +24,7 @@ Para compartilhar o mesmo inventário, publique o app em HTTPS e configure um pr
 O acesso à tabela usa Supabase Auth e RLS: cada conta só lê e altera sua própria linha. URL e chave `anon` pública do mesmo projeto do Aplicativo_cardapio estão em `supabase-config.js`; o app usa o SDK oficial e a chave composta `user_id,id`. Não use uma service role key no navegador. Fotos são compactadas no aparelho e incluídas nos dados sincronizados.
 
 O app é instalável como atalho de tela inicial em navegadores compatíveis e mantém a interface disponível sem conexão após a primeira visita; a sincronização com Supabase exige internet.
+
+Cada item também mantém um histórico de compras e reposições, com data, valor e quantidade. Ao registrar uma reposição, a quantidade comprada é somada ao estoque.
 
 Para um passo a passo ilustrado da configuração no painel Supabase, consulte [GUIA_SUPABASE.md](./GUIA_SUPABASE.md).
