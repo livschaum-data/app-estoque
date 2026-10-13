@@ -1,5 +1,17 @@
-const CACHE='casa-em-ordem-v12';
+const CACHE='casa-em-ordem-v13';
 const FILES=['./','./index.html','./styles.css','./supabase-config.js','./app.js','./manifest.webmanifest','./icon.svg'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES))));
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
-self.addEventListener('fetch',event=>{if(event.request.method!=='GET'||new URL(event.request.url).origin!==self.location.origin)return;event.respondWith(caches.match(event.request).then(hit=>hit||fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy));return response}).catch(()=>caches.match('./index.html'))))});
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',event=>{
+  const request=event.request;
+  if(request.method!=='GET'||new URL(request.url).origin!==self.location.origin)return;
+  event.respondWith(fetch(request).then(response=>{
+    if(response.ok){const copy=response.clone();event.waitUntil(caches.open(CACHE).then(cache=>cache.put(request,copy)))}
+    return response;
+  }).catch(async()=>{
+    const cached=await caches.match(request,{ignoreSearch:true});
+    if(cached)return cached;
+    if(request.mode==='navigate')return caches.match('./index.html');
+    throw new Error('Recurso indisponível offline');
+  }));
+});
