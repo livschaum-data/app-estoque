@@ -23,5 +23,3 @@ Thumbs.db
 *.xlsm
 *.xlsx
 IMPORTACAO_INICIAL.sql
-GUIA_SUPABASE.md
-supabase.sql
