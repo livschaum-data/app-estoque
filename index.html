@@ -10,12 +10,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" aria-label="Menu principal">
       <a class="brand" href="#"><span class="brand-icon">⌂</span><span><b>casa em ordem</b><small>estoque da casa</small></span></a>
+      <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">×</button>
       <div class="side-label">MENU</div>
       <button class="nav-item active" data-page="estoque"><span>▦</span> Visão geral</button>
       <button class="nav-item" data-page="estoque"><span>◫</span> Todos os itens <i id="navCount">0</i></button>
@@ -28,9 +29,10 @@
       <button class="nav-item" data-page="tipos"><span>◈</span> Tipos de itens</button>
       <div class="sidebar-bottom"><button type="button" class="sync-card" id="syncCard" aria-label="Abrir painel de sincronização" onclick="syncPanel()"><span class="sync-dot"></span><span><b id="syncTitle">Dados neste aparelho</b><small id="syncSubtitle">Sincronização desativada</small></span><span class="sync-card-arrow" aria-hidden="true">›</span></button><button class="nav-item settings-link" id="settingsBtn"><span>⚙</span> Configurações</button></div>
     </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
 
     <main class="main-area">
-      <header class="topbar"><button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">☰</button><div class="breadcrumbs">Sua casa <span>›</span> <b id="crumb">Visão geral</b></div><div class="top-actions"><button class="icon-btn" id="exportBtn" title="Exportar backup">⇩</button><button class="avatar" title="Casa">C</button></div></header>
+      <header class="topbar"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button><div class="breadcrumbs">Sua casa <span>›</span> <b id="crumb">Visão geral</b></div><div class="top-actions"><button class="icon-btn" id="exportBtn" title="Exportar backup">⇩</button><button class="avatar" title="Casa">C</button></div></header>
       <div class="content" id="pageContent">
         <section class="welcome-row"><div><div class="eyebrow"><span class="eyebrow-dot"></span> ORGANIZAÇÃO DO LAR</div><h1>Estoque da casa</h1><p class="subhead">Tudo o que você tem, em cada cantinho da casa.</p></div><button class="primary-btn" id="addItemBtn"><span>＋</span> Adicionar item</button></section>
         <section class="stats-grid"><article class="stat-card"><div class="stat-icon mint">◫</div><div class="stat-label">Itens cadastrados</div><strong id="statItems">0</strong><small>em todos os locais</small></article><article class="stat-card"><div class="stat-icon lilac">⌖</div><div class="stat-label">Locais da casa</div><strong id="statPlaces">0</strong><small>com itens organizados</small></article><article class="stat-card"><div class="stat-icon peach">◷</div><div class="stat-label">Estoque baixo</div><strong id="statLow">0</strong><small>precisam de atenção</small></article><article class="stat-card"><div class="stat-icon butter">◷</div><div class="stat-label">Vencendo em 30 dias</div><strong id="statExpiry">0</strong><small>vale conferir a validade</small></article></section>
@@ -49,7 +51,7 @@
   <div class="toast" id="toast"></div>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=17"></script>
   <script>if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});</script>
 </body>
 </html>
