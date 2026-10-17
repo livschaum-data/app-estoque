@@ -25,6 +25,6 @@ O acesso à tabela usa Supabase Auth e RLS: cada conta só lê e altera sua pró
 
 O app é instalável como atalho de tela inicial em navegadores compatíveis e mantém a interface disponível sem conexão após a primeira visita; a sincronização com Supabase exige internet.
 
-Cada item também mantém um histórico de compras e reposições, com data, valor e quantidade. Ao registrar uma reposição, a quantidade comprada é somada ao estoque.
+Cada item mantém um histórico de compras e reposições, com data, quantidade e valor opcional. O estoque soma a quantidade que ainda existe em cada compra; qualquer compra pode ser editada para informar quanto ainda existe e quanto já acabou. Compras antigas sem quantidade registrada contam como uma unidade cada. Sem compras, a quantidade pode ser informada manualmente.
 
 Para um passo a passo ilustrado da configuração no painel Supabase, consulte [GUIA_SUPABASE.md](./GUIA_SUPABASE.md).
