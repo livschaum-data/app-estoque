@@ -21,3 +21,6 @@
 
 /* Painel visual único para busca e filtros da grade. */
 .inventory-filters-sticky{background:#f1f6f1;border:1px solid #cfddcf;border-radius:14px;padding:12px;margin:0 0 18px;box-shadow:0 7px 18px #263b2b14}.filter-panel-head{display:flex;align-items:baseline;gap:9px;margin:0 1px 10px;color:#326b51}.filter-panel-head strong{font:700 12px Manrope,sans-serif}.filter-panel-head span{font-size:10px;color:#7a887d}.inventory-filters-sticky .toolbar{padding-bottom:10px;border-bottom:1px solid #d9e4d9}.inventory-filters-sticky .search-box,.inventory-filters-sticky .toolbar select,.inventory-filters-sticky .view-toggle{background:#fff;border-color:#d9e3d8}.inventory-filters-sticky .inventory-status-filter{padding:10px 0 0}.inventory-filters-sticky .inventory-status-filter button{background:#fff;border-color:#e0e7df}.inventory-filters-sticky .inventory-status-filter button.active{background:#dfeee2;border-color:#97b89e}.items-grid{padding-top:0}@media(max-width:700px){.inventory-filters-sticky{padding:10px;margin-bottom:14px;border-radius:12px}.filter-panel-head{margin-bottom:8px}.filter-panel-head span{display:none}.inventory-filters-sticky .toolbar{padding-bottom:9px}.inventory-filters-sticky .inventory-status-filter{padding:9px 0 0}}
+
+/* Exibe a foto completa do item na galeria, sem recorte. */
+.item-photo img{object-fit:contain;object-position:center}
