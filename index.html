@@ -23,6 +23,8 @@
       <button class="nav-item" data-page="estoque" data-filter="Despensa"><span>◉</span> Despensa</button>
       <button class="nav-item" data-page="estoque" data-filter="Beleza"><span>✳</span> Beleza</button>
       <button class="nav-item" data-page="estoque" data-filter="Remédios"><span>✚</span> Remédios</button>
+      <button class="nav-item" data-page="resumo"><span>◫</span> Resumo do estoque</button>
+      <button class="nav-item" data-page="compras"><span>☑</span> Lista de compras</button>
       <div class="side-label side-label-spaced">ORGANIZAÇÃO</div>
       <button class="nav-item" data-page="locais"><span>⌖</span> Locais da casa</button>
       <button class="nav-item" data-page="categorias"><span>☷</span> Categorias</button>
@@ -44,6 +46,8 @@
         </section>
         <footer>Um lar mais leve começa com tudo no seu lugar <span>✳</span></footer>
       </div>
+      <div class="content app-page hidden" id="summaryPage"></div>
+      <div class="content app-page hidden" id="shoppingPage"></div>
     </main>
   </div>
   <div class="overlay hidden" id="modalOverlay"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><header class="modal-header"><div><div class="eyebrow">CADASTRO</div><h2 id="modalTitle">Adicionar item</h2></div><button class="close-btn" id="closeModal" aria-label="Fechar">×</button></header><form id="itemForm"><input type="hidden" id="itemId"><div class="photo-upload" id="photoDrop"><img id="photoPreview" alt="Prévia da foto" class="hidden"><div id="photoPlaceholder"><span>＋</span><b>Adicionar uma foto</b><small>Escolha câmera ou galeria abaixo</small></div><button type="button" class="remove-photo hidden" id="removePhoto">Remover foto</button></div><div class="photo-actions"><button type="button" class="secondary-btn" id="chooseCamera">Usar câmera</button><button type="button" class="secondary-btn" id="chooseGallery">Escolher da galeria</button></div><input type="file" id="photoCameraInput" accept="image/*" capture="environment" hidden><input type="file" id="photoGalleryInput" accept="image/*" hidden>

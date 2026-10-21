@@ -134,4 +134,62 @@ function updateInventoryViewButton(){const button=document.querySelector('.view-
 function applyInventoryView(){const grid=el('itemsGrid'),showingTable=inventoryView==='table';grid.classList.toggle('table-view',showingTable);if(showingTable&&!grid.classList.contains('hidden')&&grid.children.length)grid.insertAdjacentHTML('afterbegin','<div class="inventory-table-head" role="row"><span>Foto</span><span>Item</span><span>Tipo e categoria</span><span>Estoque e local</span><span>Última compra</span><span>Validade</span></div>');updateInventoryViewButton()}
 renderItems=function(){renderItemCards();applyInventoryView()};
 document.querySelector('.view-toggle').addEventListener('click',()=>{inventoryView=inventoryView==='cards'?'table':'cards';localStorage.setItem(INVENTORY_VIEW_KEY,inventoryView);renderItems()});
+
+// Movimentação rápida: cada compra cria uma nova recorrência; o consumo esgota as mais antigas primeiro.
+const inventoryRenderWithControls=renderItems;
+function decorateQuickControls(){
+  el('itemsGrid').querySelectorAll('.item-card').forEach(card=>{
+    if(card.querySelector('.item-quick-actions'))return;
+    const edit=card.querySelector('[data-edit]'),id=edit?.dataset.edit;
+    if(!id)return;
+    const item=state.items.find(entry=>entry.id===id);if(!item)return;
+    card.querySelector('.item-footer')?.insertAdjacentHTML('beforebegin',`<div class="item-quick-actions"><span>Movimentar estoque</span><button type="button" class="quick-stock-btn consume" data-quick-stock="consume" data-item-id="${escapeHtml(id)}" aria-label="Consumir uma unidade de ${escapeHtml(item.name)}">−</button><button type="button" class="quick-stock-btn" data-quick-stock="purchase" data-item-id="${escapeHtml(id)}" aria-label="Registrar compra de uma unidade de ${escapeHtml(item.name)}">＋</button></div>`);
+  });
+}
+renderItems=function(){inventoryRenderWithControls();decorateQuickControls()};
+async function quickStockMove(id,action){
+  const item=state.items.find(entry=>entry.id===id);if(!item)return;
+  const today=new Date().toISOString().slice(0,10),purchases=(item.purchases||[]).map(p=>({...p}));
+  if(action==='purchase'){
+    const existingManual=Number(item.quantity)||0;
+    if(!purchases.length&&existingManual>0)purchases.push({id:crypto.randomUUID(),date:'1900-01-01',value:'',quantity:existingManual,remainingQuantity:existingManual,finishedQuantity:0,kind:'compra',status:'available'});
+    purchases.push({id:crypto.randomUUID(),date:today,value:'',quantity:1,remainingQuantity:1,finishedQuantity:0,kind:'reposicao',status:'available'});
+  }else if(purchases.length){
+    let left=1;
+    [...purchases].sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id||'').localeCompare(String(b.id||''))).forEach(p=>{if(left<=0)return;const amounts=purchaseAmounts(p),used=Math.min(amounts.remaining,left);p.remainingQuantity=Number((amounts.remaining-used).toFixed(6));p.finishedQuantity=Number((amounts.finished+used).toFixed(6));p.status=p.remainingQuantity>0?'available':'finished';left=Number((left-used).toFixed(6))});
+    if(left>0)return notify('Não há quantidade disponível para consumir.');
+  }else{
+    const current=Number(item.quantity)||0;if(current<1)return notify('Não há quantidade disponível para consumir.');
+    Object.assign(item,editedItem(item,{quantity:String(current-1)}));const saved=await persist();render();return notify(saved?'Consumo registrado e sincronizado.':'Consumo registrado neste aparelho.');
+  }
+  Object.assign(item,editedItem(item,{purchases,quantity:String(availablePurchaseQuantity(purchases)),restockDecision:action==='purchase'?'':item.restockDecision}));
+  const saved=await persist();render();notify(saved?(action==='purchase'?'Compra registrada e sincronizada.':'Consumo registrado e sincronizado.'):(action==='purchase'?'Compra registrada neste aparelho.':'Consumo registrado neste aparelho.'));
+}
+el('itemsGrid').addEventListener('click',event=>{const button=event.target.closest('[data-quick-stock]');if(button)quickStockMove(button.dataset.itemId,button.dataset.quickStock)});
+
+let currentPage='estoque',summaryGroup='place',shoppingType='';
+function setPage(page){
+  currentPage=page;el('pageContent').classList.toggle('hidden',page!=='estoque');el('summaryPage').classList.toggle('hidden',page!=='resumo');el('shoppingPage').classList.toggle('hidden',page!=='compras');
+  document.querySelectorAll('.nav-item').forEach(button=>button.classList.toggle('active',button.dataset.page===page&&(!button.dataset.filter||page==='estoque'&&button.dataset.filter===activeType)));
+  el('crumb').textContent=page==='resumo'?'Resumo do estoque':page==='compras'?'Lista de compras':'Visão geral';
+  if(page==='resumo')renderSummary();if(page==='compras')renderShoppingList();
+}
+function summaryKey(item){return summaryGroup==='place'?item.place:summaryGroup==='type'?item.type:item.category||'Sem categoria'}
+function renderSummary(){
+  const buckets=new Map();state.items.forEach(item=>{const name=summaryKey(item);if(!name)return;const bucket=buckets.get(name)||{items:0,quantity:0};bucket.items++;bucket.quantity+=itemQuantity(item);buckets.set(name,bucket)});
+  const labels={place:'Locais',type:'Tipos',category:'Categorias'},cards=[...buckets.entries()].sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'));
+  el('summaryPage').innerHTML=`<section class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> VISÃO DO ESTOQUE</div><h1>Resumo do estoque</h1><p class="subhead">Quantidades agrupadas para uma conferência rápida.</p></div><div class="group-switch" role="group" aria-label="Agrupar resumo">${Object.entries(labels).map(([key,label])=>`<button type="button" data-summary-group="${key}" class="${summaryGroup===key?'active':''}">${label}</button>`).join('')}</div></section><section class="summary-grid">${cards.length?cards.map(([name,data])=>`<article class="summary-card"><h2>${escapeHtml(name)}</h2><div><b class="summary-number">${Number(data.quantity.toFixed(2))}</b><span class="summary-unit">unidades no total</span></div><div class="summary-lines"><div class="summary-line"><span>Itens cadastrados</span><b>${data.items}</b></div><div class="summary-line"><span>Quantidade disponível</span><b>${Number(data.quantity.toFixed(2))}</b></div></div></article>`).join(''):'<div class="shopping-empty">Ainda não há itens para resumir.</div>'}</section>`;
+  el('summaryPage').querySelectorAll('[data-summary-group]').forEach(button=>button.onclick=()=>{summaryGroup=button.dataset.summaryGroup;renderSummary()});
+}
+function renderShoppingList(){
+  const needs=state.items.filter(item=>{const quantity=itemQuantity(item);return item.restockDecision==='repor'||quantity<=0||(item.minimum!==''&&quantity<=Number(item.minimum))}).filter(item=>!shoppingType||item.type===shoppingType);
+  const groups=new Map();needs.forEach(item=>{const name=item.category||'Sem categoria';(groups.get(name)||groups.set(name,[]).get(name)).push(item)});
+  el('shoppingPage').innerHTML=`<section class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> PLANEJAMENTO</div><h1>Lista de compras</h1><p class="subhead">Itens que chegaram ao limite ou estão marcados para repor.</p></div></section><div class="shopping-filter"><label for="shoppingTypeFilter">Filtrar por tipo</label><select id="shoppingTypeFilter"><option value="">Todos os tipos</option>${state.types.map(type=>`<option value="${escapeHtml(type)}"${type===shoppingType?' selected':''}>${escapeHtml(type)}</option>`).join('')}</select></div><section class="shopping-grid">${groups.size?[...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0],'pt-BR')).map(([category,items])=>`<article class="shopping-card"><div class="shopping-card-head"><span>○</span><h2>${escapeHtml(category)}</h2></div><ul>${items.sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(item=>`<li><input type="checkbox" aria-label="Marcar ${escapeHtml(item.name)} como comprado"><span>${escapeHtml(item.name)}</span><small>${itemQuantity(item)} ${escapeHtml(item.unit)}</small></li>`).join('')}</ul></article>`).join(''):'<div class="shopping-empty">Sua lista está vazia. Marque itens sem estoque como “Repor” ou defina um estoque mínimo.</div>'}</section>`;
+  el('shoppingTypeFilter').onchange=()=>{shoppingType=el('shoppingTypeFilter').value;renderShoppingList()};
+}
+document.querySelector('[data-page="resumo"]').onclick=()=>{setPage('resumo');setSidebarOpen(false)};
+document.querySelector('[data-page="compras"]').onclick=()=>{setPage('compras');setSidebarOpen(false)};
+document.querySelectorAll('[data-page="estoque"]').forEach(button=>button.addEventListener('click',()=>setPage('estoque')));
+const renderWithPages=render;
+render=function(){renderWithPages();if(currentPage==='resumo')renderSummary();if(currentPage==='compras')renderShoppingList()};
 el('settingsBtn').onclick=settings;render();initializeSync();
