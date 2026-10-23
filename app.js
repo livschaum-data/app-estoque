@@ -243,7 +243,7 @@ function setupEditFormLayout(){
   order.map(field).filter(Boolean).forEach(node=>grid.append(node));
   [field('itemQuantity'),field('itemUnit'),field('itemMinimum')].forEach(node=>node?.classList.add('third'));
   const minimumLabel=field('itemMinimum'),labelText=[...(minimumLabel?.childNodes||[])].find(node=>node.nodeType===Node.TEXT_NODE);if(labelText)labelText.nodeValue='Estoque mínimo';
-  if(minimumLabel&&!minimumLabel.querySelector('.minimum-hint')){const hint=document.createElement('small');hint.className='minimum-hint';hint.textContent='Abaixo deste número, escolha Repor ou Não repor.';minimumLabel.append(hint)}
+  if(minimumLabel&&!minimumLabel.querySelector('.minimum-hint')){const hint=document.createElement('small');hint.className='minimum-hint';hint.textContent='Abaixo deste número, o item fica marcado como estoque baixo.';minimumLabel.append(hint)}
   addIntegerStepper(el('itemQuantity'),0);addIntegerStepper(el('itemMinimum'),0);addIntegerStepper(el('purchaseQuantity'),1);
 }
 function setupPurchaseIntegerInputs(){
@@ -259,9 +259,10 @@ applyPurchaseEdit=function(){
 };
 const addPurchaseWithIntegerInputs=el('addPurchaseBtn').onclick;
 el('addPurchaseBtn').onclick=()=>{if(!Number.isInteger(Number(el('purchaseQuantity').value)))return notify('Use apenas números inteiros na quantidade.');return addPurchaseWithIntegerInputs()};
-function needsRestockChoice(item){const minimum=Number(item.minimum);return item.minimum!==''&&Number.isFinite(minimum)&&itemQuantity(item)<minimum}
+function isBelowMinimum(item){const minimum=Number(item.minimum);return item.minimum!==''&&Number.isFinite(minimum)&&itemQuantity(item)<minimum}
+function needsRestockChoice(){return true}
 function syncRestockChoices(){
-  el('itemsGrid').querySelectorAll('.item-card').forEach(card=>{const id=card.querySelector('[data-edit]')?.dataset.edit,item=state.items.find(entry=>entry.id===id);if(!item)return;const needed=needsRestockChoice(item),existing=card.querySelector('.restock-choice'),stock=card.querySelector('.item-stock-info');stock?.classList.toggle('has-restock',needed);if(!needed){existing?.remove();card.querySelector('.low-badge')?.remove();return}if(!existing&&stock)stock.insertAdjacentHTML('beforeend',`<div class="restock-choice" role="group" aria-label="Decisão de reposição para ${escapeHtml(item.name)}"><button type="button" data-restock="${escapeHtml(item.id)}" data-decision="repor" aria-pressed="${item.restockDecision==='repor'}" class="${item.restockDecision==='repor'?'selected':''}">Repor</button><button type="button" data-restock="${escapeHtml(item.id)}" data-decision="nao-repor" aria-pressed="${item.restockDecision==='nao-repor'}" class="${item.restockDecision==='nao-repor'?'selected':''}">Não repor</button></div>`)});
+  el('itemsGrid').querySelectorAll('.item-card').forEach(card=>{const id=card.querySelector('[data-edit]')?.dataset.edit,item=state.items.find(entry=>entry.id===id);if(!item)return;const belowMinimum=isBelowMinimum(item),existing=card.querySelector('.restock-choice'),stock=card.querySelector('.item-stock-info');stock?.classList.add('has-restock');if(!belowMinimum)card.querySelector('.low-badge')?.remove();if(!existing&&stock)stock.insertAdjacentHTML('beforeend',`<div class="restock-choice" role="group" aria-label="Decisão de reposição para ${escapeHtml(item.name)}"><button type="button" data-restock="${escapeHtml(item.id)}" data-decision="repor" aria-pressed="${item.restockDecision==='repor'}" class="${item.restockDecision==='repor'?'selected':''}">Repor</button><button type="button" data-restock="${escapeHtml(item.id)}" data-decision="nao-repor" aria-pressed="${item.restockDecision==='nao-repor'}" class="${item.restockDecision==='nao-repor'?'selected':''}">Não repor</button></div>`)});
 }
 setRestockDecision=async function(id,decision){const item=state.items.find(entry=>entry.id===id);if(!item||!needsRestockChoice(item)||!['repor','nao-repor'].includes(decision)||item.restockDecision===decision)return;Object.assign(item,editedItem(item,{restockDecision:decision}));renderItems();const saved=await persist();notify(saved?'Decisão salva e sincronizada.':'Decisão salva neste aparelho. A sincronização será retomada quando possível.')};
 const renderItemsWithMinimumRestock=renderItems;
