@@ -31,7 +31,7 @@ function availablePurchaseQuantity(purchases){const total=purchases.reduce((sum,
 function itemQuantity(item){return item.purchases?.length?availablePurchaseQuantity(item.purchases):Number(item.quantity)||0}
 function updateQuantityField(){const input=el('itemQuantity'),hasPurchases=purchaseDraft.length>0;if(hasPurchases){if(!input.readOnly)manualQuantityDraft=input.value;input.value=String(availablePurchaseQuantity(purchaseDraft))}else if(input.readOnly)input.value=manualQuantityDraft;input.readOnly=hasPurchases;el('itemQuantityHint').textContent=hasPurchases?'Calculada pela quantidade que ainda existe de cada compra.':'Preencha manualmente quando não houver compras registradas.'}
 async function persist(){stateRevision++;state.updatedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(state));localStorage.setItem(PENDING_KEY,session?.user?.id||localStorage.getItem('casa-em-ordem-sync-owner')||'local')}catch(error){console.error('Falha ao salvar os dados neste aparelho:',error);notify('Não foi possível salvar neste aparelho; tentando sincronizar com sua conta.')}if(!session?.user){setSyncStatus(false,'Entre na conta para salvar no Supabase e sincronizar');return false}return await syncPush()}
-function render(){renderStats();renderFilters();renderCategoryFilter();renderStatusFilter();renderItems();el('navCount').textContent=state.items.length;}
+function render(){renderFilters();renderCategoryFilter();renderStatusFilter();renderItems();const navCount=el('navCount');if(navCount)navCount.textContent=state.items.length;}
 function renderStats(){const today=new Date();today.setHours(0,0,0,0);const thirty=new Date(today);thirty.setDate(thirty.getDate()+30);el('statItems').textContent=state.items.length;el('statPlaces').textContent=new Set(state.items.map(i=>i.place).filter(Boolean)).size;el('statLow').textContent=state.items.filter(i=>i.minimum!==''&&itemQuantity(i)<=Number(i.minimum)).length;el('statExpiry').textContent=state.items.filter(i=>i.expiry&&new Date(i.expiry+'T00:00:00')>=today&&new Date(i.expiry+'T00:00:00')<=thirty).length;}
 function renderFilters(){const typeSelect=el('itemType'),selectedType=typeSelect.value;typeSelect.innerHTML=state.types.map(t=>`<option>${escapeHtml(t)}</option>`).join('');if(state.types.includes(selectedType))typeSelect.value=selectedType;const filter=el('typeFilter'),filterValue=filter.value;filter.innerHTML='<option value="">Todos os tipos</option>'+state.types.map(t=>`<option>${escapeHtml(t)}</option>`).join('');if(state.types.includes(filterValue))filter.value=filterValue;const place=el('placeFilter'),selected=place.value;place.innerHTML='<option value="">Todos os locais</option>'+state.places.map(p=>`<option>${escapeHtml(p)}</option>`).join('');if(state.places.includes(selected))place.value=selected;const c=el('itemCategory'),old=c.value;c.innerHTML='<option value="">Selecione</option>'+[...(state.categories[typeSelect.value]||[])].map(x=>`<option>${escapeHtml(x)}</option>`).join('');if((state.categories[typeSelect.value]||[]).includes(old))c.value=old;const p=el('itemPlace'),v=p.value;p.innerHTML=state.places.map(x=>`<option>${escapeHtml(x)}</option>`).join('');if(state.places.includes(v))p.value=v;}
 function renderCategoryFilter(){const filter=el('categoryFilter'),selected=filter.value,type=el('typeFilter').value||activeType,types=type?[type]:state.types,categories=new Set(types.flatMap(name=>state.categories[name]||[]));for(const item of state.items)if(item.category&&(!type||item.type===type))categories.add(item.category);const options=[...categories].filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt-BR'));filter.innerHTML='<option value="">Todas as categorias</option>'+options.map(name=>`<option>${escapeHtml(name)}</option>`).join('');if(categories.has(selected))filter.value=selected}
@@ -228,4 +228,42 @@ manageTypes=function(editingIndex=null){
   if(editingIndex!==null)return;
   orderingButtons('[data-type-action="edit"]',async(index,direction)=>{if(!moveInList(state.types,index,direction))return;const synced=await persist();render();manageTypes();if(!synced)notify('Ordem salva neste aparelho; sincronização pendente.')});
 };
+
+// Organização da ficha e quantidades inteiras.
+function configureIntegerInput(input,min=0){if(!input)return;input.type='number';input.min=String(min);input.step='1';input.inputMode='numeric'}
+function addIntegerStepper(input,min=0){
+  if(!input||input.parentElement?.classList.contains('integer-stepper'))return;
+  configureIntegerInput(input,min);const wrapper=document.createElement('div');wrapper.className='integer-stepper';input.parentNode.insertBefore(wrapper,input);wrapper.append(input);
+  const change=delta=>{if(input.readOnly||input.disabled)return;const current=Number(input.value),next=Math.max(min,(Number.isFinite(current)?current:min)+delta);input.value=String(Math.round(next));input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}))};
+  const less=document.createElement('button'),more=document.createElement('button');less.type=more.type='button';less.className='integer-stepper-button';more.className='integer-stepper-button';less.textContent='−';more.textContent='＋';less.setAttribute('aria-label','Diminuir quantidade');more.setAttribute('aria-label','Aumentar quantidade');less.onclick=()=>change(-1);more.onclick=()=>change(1);wrapper.prepend(less);wrapper.append(more);
+}
+function setupEditFormLayout(){
+  const grid=document.querySelector('#itemForm .form-grid');if(!grid)return;
+  const field=id=>el(id)?.closest('.field'),order=['itemName','itemType','itemCategory','itemBrand','itemPlace','itemContent','itemExpiry','itemQuantity','itemUnit','itemMinimum','itemNotes'];
+  order.map(field).filter(Boolean).forEach(node=>grid.append(node));
+  [field('itemQuantity'),field('itemUnit'),field('itemMinimum')].forEach(node=>node?.classList.add('third'));
+  const minimumLabel=field('itemMinimum'),labelText=[...(minimumLabel?.childNodes||[])].find(node=>node.nodeType===Node.TEXT_NODE);if(labelText)labelText.nodeValue='Estoque mínimo';
+  if(minimumLabel&&!minimumLabel.querySelector('.minimum-hint')){const hint=document.createElement('small');hint.className='minimum-hint';hint.textContent='Abaixo deste número, escolha Repor ou Não repor.';minimumLabel.append(hint)}
+  addIntegerStepper(el('itemQuantity'),0);addIntegerStepper(el('itemMinimum'),0);addIntegerStepper(el('purchaseQuantity'),1);
+}
+function setupPurchaseIntegerInputs(){
+  el('purchaseHistory')?.querySelectorAll('[data-purchase-edit]').forEach(input=>{const kind=input.dataset.purchaseEdit;if(['quantity','remaining','finished'].includes(kind))addIntegerStepper(input,kind==='quantity'?1:0)});
+}
+setupEditFormLayout();
+const renderPurchaseHistoryWithIntegerInputs=renderPurchaseHistory;
+renderPurchaseHistory=function(){renderPurchaseHistoryWithIntegerInputs();setupPurchaseIntegerInputs()};
+const applyPurchaseEditWithIntegerInputs=applyPurchaseEdit;
+applyPurchaseEdit=function(){
+  if(editingPurchaseIndex!==null){const editor=el('purchaseHistory').querySelector(`[data-purchase-editor="${editingPurchaseIndex}"]`);const values=['quantity','remaining','finished'].map(name=>Number(editor?.querySelector(`[data-purchase-edit="${name}"]`)?.value));if(!values.every(Number.isInteger))return notify('Use apenas números inteiros nas quantidades.'),false}
+  return applyPurchaseEditWithIntegerInputs();
+};
+const addPurchaseWithIntegerInputs=el('addPurchaseBtn').onclick;
+el('addPurchaseBtn').onclick=()=>{if(!Number.isInteger(Number(el('purchaseQuantity').value)))return notify('Use apenas números inteiros na quantidade.');return addPurchaseWithIntegerInputs()};
+function needsRestockChoice(item){const minimum=Number(item.minimum);return item.minimum!==''&&Number.isFinite(minimum)&&itemQuantity(item)<minimum}
+function syncRestockChoices(){
+  el('itemsGrid').querySelectorAll('.item-card').forEach(card=>{const id=card.querySelector('[data-edit]')?.dataset.edit,item=state.items.find(entry=>entry.id===id);if(!item)return;const needed=needsRestockChoice(item),existing=card.querySelector('.restock-choice'),stock=card.querySelector('.item-stock-info');stock?.classList.toggle('has-restock',needed);if(!needed){existing?.remove();card.querySelector('.low-badge')?.remove();return}if(!existing&&stock)stock.insertAdjacentHTML('beforeend',`<div class="restock-choice" role="group" aria-label="Decisão de reposição para ${escapeHtml(item.name)}"><button type="button" data-restock="${escapeHtml(item.id)}" data-decision="repor" aria-pressed="${item.restockDecision==='repor'}" class="${item.restockDecision==='repor'?'selected':''}">Repor</button><button type="button" data-restock="${escapeHtml(item.id)}" data-decision="nao-repor" aria-pressed="${item.restockDecision==='nao-repor'}" class="${item.restockDecision==='nao-repor'?'selected':''}">Não repor</button></div>`)});
+}
+setRestockDecision=async function(id,decision){const item=state.items.find(entry=>entry.id===id);if(!item||!needsRestockChoice(item)||!['repor','nao-repor'].includes(decision)||item.restockDecision===decision)return;Object.assign(item,editedItem(item,{restockDecision:decision}));renderItems();const saved=await persist();notify(saved?'Decisão salva e sincronizada.':'Decisão salva neste aparelho. A sincronização será retomada quando possível.')};
+const renderItemsWithMinimumRestock=renderItems;
+renderItems=function(){renderItemsWithMinimumRestock();syncRestockChoices()};
 el('settingsBtn').onclick=settings;render();initializeSync();

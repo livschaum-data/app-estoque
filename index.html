@@ -19,10 +19,6 @@
       <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">×</button>
       <div class="side-label">MENU</div>
       <button class="nav-item active" data-page="estoque"><span>▦</span> Visão geral</button>
-      <button class="nav-item" data-page="estoque"><span>◫</span> Todos os itens <i id="navCount">0</i></button>
-      <button class="nav-item" data-page="estoque" data-filter="Despensa"><span>◉</span> Despensa</button>
-      <button class="nav-item" data-page="estoque" data-filter="Beleza"><span>✳</span> Beleza</button>
-      <button class="nav-item" data-page="estoque" data-filter="Remédios"><span>✚</span> Remédios</button>
       <button class="nav-item" data-page="resumo"><span>◫</span> Resumo do estoque</button>
       <button class="nav-item" data-page="compras"><span>☑</span> Lista de compras</button>
       <div class="side-label side-label-spaced">ORGANIZAÇÃO</div>
@@ -37,7 +33,6 @@
       <header class="topbar"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button><div class="breadcrumbs">Sua casa <span>›</span> <b id="crumb">Visão geral</b></div><div class="top-actions"><button class="icon-btn" id="exportBtn" title="Exportar backup">⇩</button><button class="avatar" title="Casa">C</button></div></header>
       <div class="content" id="pageContent">
         <section class="welcome-row"><div><div class="eyebrow"><span class="eyebrow-dot"></span> ORGANIZAÇÃO DO LAR</div><h1>Estoque da casa</h1><p class="subhead">Tudo o que você tem, em cada cantinho da casa.</p></div><button class="primary-btn" id="addItemBtn"><span>＋</span> Adicionar item</button></section>
-        <section class="stats-grid"><article class="stat-card"><div class="stat-icon mint">◫</div><div class="stat-label">Itens cadastrados</div><strong id="statItems">0</strong><small>em todos os locais</small></article><article class="stat-card"><div class="stat-icon lilac">⌖</div><div class="stat-label">Locais da casa</div><strong id="statPlaces">0</strong><small>com itens organizados</small></article><article class="stat-card"><div class="stat-icon peach">◷</div><div class="stat-label">Estoque baixo</div><strong id="statLow">0</strong><small>precisam de atenção</small></article><article class="stat-card"><div class="stat-icon butter">◷</div><div class="stat-label">Vencendo em 30 dias</div><strong id="statExpiry">0</strong><small>vale conferir a validade</small></article></section>
         <section class="inventory-section"><div class="section-heading"><div><h2 id="listTitle">Seus itens</h2><p>Encontre e acompanhe o que está guardado.</p></div></div>
           <div class="inventory-filters-sticky">
           <div class="filter-panel-head"><strong>Filtros</strong><span>Escolha o que deseja visualizar</span></div>
