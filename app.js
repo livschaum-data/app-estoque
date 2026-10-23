@@ -241,6 +241,8 @@ function setupEditFormLayout(){
   const grid=document.querySelector('#itemForm .form-grid');if(!grid)return;
   const field=id=>el(id)?.closest('.field'),order=['itemName','itemType','itemCategory','itemBrand','itemPlace','itemContent','itemExpiry','itemQuantity','itemUnit','itemMinimum','itemNotes'];
   order.map(field).filter(Boolean).forEach(node=>grid.append(node));
+  order.map(field).filter(Boolean).forEach(node=>node.classList.remove('full','third'));
+  [field('itemName'),field('itemNotes')].forEach(node=>node?.classList.add('full'));
   [field('itemQuantity'),field('itemUnit'),field('itemMinimum')].forEach(node=>node?.classList.add('third'));
   const minimumLabel=field('itemMinimum'),labelText=[...(minimumLabel?.childNodes||[])].find(node=>node.nodeType===Node.TEXT_NODE);if(labelText)labelText.nodeValue='Estoque mínimo';
   if(minimumLabel&&!minimumLabel.querySelector('.minimum-hint')){const hint=document.createElement('small');hint.className='minimum-hint';hint.textContent='Abaixo deste número, o item fica marcado como estoque baixo.';minimumLabel.append(hint)}
