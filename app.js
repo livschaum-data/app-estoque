@@ -269,4 +269,13 @@ function syncRestockChoices(){
 setRestockDecision=async function(id,decision){const item=state.items.find(entry=>entry.id===id);if(!item||!needsRestockChoice(item)||!['repor','nao-repor'].includes(decision)||item.restockDecision===decision)return;Object.assign(item,editedItem(item,{restockDecision:decision}));renderItems();const saved=await persist();notify(saved?'Decisão salva e sincronizada.':'Decisão salva neste aparelho. A sincronização será retomada quando possível.')};
 const renderItemsWithMinimumRestock=renderItems;
 renderItems=function(){renderItemsWithMinimumRestock();syncRestockChoices()};
+
+// Toda ficha começa com uma decisão de reposição definida: “Não repor”.
+function normalizeRestockDecisions(){
+  let changed=false;
+  el('itemsGrid').querySelectorAll('.item-card').forEach(card=>{const id=card.querySelector('[data-edit]')?.dataset.edit,item=state.items.find(entry=>entry.id===id);if(!item)return;const decision=item.restockDecision==='repor'?'repor':'nao-repor';if(item.restockDecision!==decision){item.restockDecision=decision;changed=true}card.querySelectorAll('[data-restock]').forEach(button=>{const selected=button.dataset.decision===decision;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected))})});
+  if(changed)try{localStorage.setItem(KEY,JSON.stringify(state))}catch(error){console.error('Não foi possível guardar a decisão de reposição:',error)}
+}
+const renderItemsWithDefaultRestock=renderItems;
+renderItems=function(){renderItemsWithDefaultRestock();normalizeRestockDecisions()};
 el('settingsBtn').onclick=settings;render();initializeSync();
