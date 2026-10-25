@@ -296,3 +296,13 @@ const applyPurchaseEditWithLifecycle=applyPurchaseEdit;
 applyPurchaseEdit=function(){const index=editingPurchaseIndex,editor=index===null?null:el('purchaseHistory').querySelector(`[data-purchase-editor="${index}"]`),date=editor?.querySelector('[data-purchase-edit="date"]')?.value,discardDate=editor?.querySelector('[data-purchase-edit="discardDate"]')?.value||'';if(discardDate&&discardDate<date)return notify('A data de descarte não pode ser anterior à data de compra.'),false;const saved=applyPurchaseEditWithLifecycle();if(saved&&index!==null){purchaseDraft[index].discardDate=discardDate;renderPurchaseHistory()}return saved};
 const addPurchaseWithLifecycle=el('addPurchaseBtn').onclick;
 el('addPurchaseBtn').onclick=()=>{const date=el('purchaseDate').value,discardDate=el('purchaseDiscardDate')?.value||'';if(discardDate&&discardDate<date)return notify('A data de descarte não pode ser anterior à data de compra.');const before=purchaseDraft.length,result=addPurchaseWithLifecycle();if(purchaseDraft.length>before){purchaseDraft.at(-1).discardDate=discardDate;el('purchaseDiscardDate').value='';updateDiscardDuration(el('purchaseDate'),el('purchaseDiscardDate'),el('purchaseDuration'));renderPurchaseHistory()}return result};
+
+function arrangePurchaseEntry(){
+  const entry=document.querySelector('.purchase-entry');if(!entry)return;
+  const field=id=>el(id)?.closest('.field'),title=entry.querySelector('.purchase-entry-title'),button=el('addPurchaseBtn');
+  [title,field('purchaseDate'),field('purchaseKind'),field('purchaseValue'),field('purchaseQuantity'),field('purchaseStatus'),field('purchaseDiscardDate'),field('purchaseDuration'),button].filter(Boolean).forEach(node=>entry.append(node));
+  entry.classList.add('purchase-entry-arranged');
+}
+arrangePurchaseEntry();
+const renderPurchaseHistoryWithEntryOrder=renderPurchaseHistory;
+renderPurchaseHistory=function(){renderPurchaseHistoryWithEntryOrder();arrangePurchaseEntry()};
