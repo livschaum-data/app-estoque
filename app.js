@@ -306,3 +306,9 @@ function arrangePurchaseEntry(){
 arrangePurchaseEntry();
 const renderPurchaseHistoryWithEntryOrder=renderPurchaseHistory;
 renderPurchaseHistory=function(){renderPurchaseHistoryWithEntryOrder();arrangePurchaseEntry()};
+
+function arrangePurchaseEditors(){
+  el('purchaseHistory').querySelectorAll('.purchase-editor').forEach(editor=>{const field=selector=>editor.querySelector(selector)?.closest('.field'),grid=editor.querySelector('.purchase-edit-grid');[field('[data-purchase-edit="date"]'),field('[data-purchase-edit="kind"]'),field('[data-purchase-edit="value"]'),field('[data-purchase-edit="quantity"]'),field('[data-purchase-edit="remaining"]'),field('[data-purchase-edit="finished"]'),field('[data-purchase-edit="discardDate"]'),field('[data-purchase-duration]')].filter(Boolean).forEach(node=>grid.append(node));grid.classList.add('purchase-edit-grid-arranged')});
+}
+const renderPurchaseHistoryWithEditorOrder=renderPurchaseHistory;
+renderPurchaseHistory=function(){renderPurchaseHistoryWithEditorOrder();arrangePurchaseEditors()};
