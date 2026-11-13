@@ -22,6 +22,7 @@ O arquivo SQL pode ser executado novamente: ele cria a tabela se necessário, mi
 
 1. No painel, abra a área **Authentication** e confira em **Sign In / Providers** se o provedor **Email** está habilitado.
 2. Se a confirmação de e-mail estiver habilitada, o app avisará para confirmar o endereço depois de criar a conta. O link de confirmação retorna ao endereço de Site URL configurado abaixo. A URL do site também é usada nos e-mails de autenticação. [Configuração de redirecionamento do Supabase](https://supabase.com/docs/guides/auth/redirect-urls).
+3. O app também envia o link de **redefinição de senha** (botão "Esqueci minha senha"). Ao clicar no link, o Supabase autentica o usuário e o app pede a nova senha antes de sincronizar. Para isso funcionar fora do computador de desenvolvimento, a URL do app precisa estar em **Site URL** e em **Redirect URLs**.
 
 ## 4. Permitir o endereço publicado no GitHub Pages
 
