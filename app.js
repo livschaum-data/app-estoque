@@ -257,17 +257,27 @@ function decorateQuickControls(){
   });
 }
 renderItems=function(){inventoryRenderWithControls();decorateQuickControls()};
+function todayISODate(){const now=new Date();return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`}
+function applyPurchaseMovement(item,date){
+  const purchases=(item.purchases||[]).map(p=>({...p}));
+  if(!purchases.length){
+    const current=Number(item.quantity)||0;
+    Object.assign(item,editedItem(item,{quantity:String(current+1),restockDecision:''}));
+    return;
+  }
+  purchases.push({id:crypto.randomUUID(),date,value:'',quantity:1,remainingQuantity:1,finishedQuantity:0,kind:'reposicao',status:'available'});
+  Object.assign(item,editedItem(item,{purchases,quantity:String(availablePurchaseQuantity(purchases)),restockDecision:''}));
+}
 async function quickStockMove(id,action){
   const item=state.items.find(entry=>entry.id===id);if(!item)return;
-  const today=new Date().toISOString().slice(0,10),purchases=(item.purchases||[]).map(p=>({...p}));
   if(action==='purchase'){
-    if(!purchases.length){
-      const current=Number(item.quantity)||0;
-      Object.assign(item,editedItem(item,{quantity:String(current+1),restockDecision:''}));
-      const saved=await persist();render();return notify(saved?'Estoque atualizado e sincronizado.':'Estoque atualizado neste aparelho.');
-    }
-    purchases.push({id:crypto.randomUUID(),date:today,value:'',quantity:1,remainingQuantity:1,finishedQuantity:0,kind:'reposicao',status:'available'});
-  }else if(purchases.length){
+    const hadPurchases=Boolean(item.purchases?.length);
+    applyPurchaseMovement(item,todayISODate());
+    const saved=await persist();render();
+    return notify(saved?(hadPurchases?'Compra registrada e sincronizada.':'Estoque atualizado e sincronizado.'):(hadPurchases?'Compra registrada neste aparelho.':'Estoque atualizado neste aparelho.'));
+  }
+  const purchases=(item.purchases||[]).map(p=>({...p}));
+  if(purchases.length){
     let left=1;
     [...purchases].sort((a,b)=>(a.date||'').localeCompare(b.date||'')||String(a.id||'').localeCompare(String(b.id||''))).forEach(p=>{if(left<=0)return;const amounts=purchaseAmounts(p),used=Math.min(amounts.remaining,left);p.remainingQuantity=Number((amounts.remaining-used).toFixed(6));p.finishedQuantity=Number((amounts.finished+used).toFixed(6));p.status=p.remainingQuantity>0?'available':'finished';left=Number((left-used).toFixed(6))});
     if(left>0)return notify('Não há quantidade disponível para consumir.');
@@ -275,8 +285,8 @@ async function quickStockMove(id,action){
     const current=Number(item.quantity)||0;if(current<1)return notify('Não há quantidade disponível para consumir.');
     Object.assign(item,editedItem(item,{quantity:String(current-1)}));const saved=await persist();render();return notify(saved?'Consumo registrado e sincronizado.':'Consumo registrado neste aparelho.');
   }
-  Object.assign(item,editedItem(item,{purchases,quantity:String(availablePurchaseQuantity(purchases)),restockDecision:action==='purchase'?'':item.restockDecision}));
-  const saved=await persist();render();notify(saved?(action==='purchase'?'Compra registrada e sincronizada.':'Consumo registrado e sincronizado.'):(action==='purchase'?'Compra registrada neste aparelho.':'Consumo registrado neste aparelho.'));
+  Object.assign(item,editedItem(item,{purchases,quantity:String(availablePurchaseQuantity(purchases))}));
+  const saved=await persist();render();notify(saved?'Consumo registrado e sincronizado.':'Consumo registrado neste aparelho.');
 }
 el('itemsGrid').addEventListener('click',event=>{const button=event.target.closest('[data-quick-stock]');if(button)quickStockMove(button.dataset.itemId,button.dataset.quickStock)});
 
@@ -299,10 +309,32 @@ function renderShoppingList(){
   const isPermanent=inventoryMode==='permanent',needs=state.items.filter(item=>isPermanent?['adquirir','substituir'].includes(item.restockDecision):item.restockDecision==='repor').filter(item=>!shoppingTypes.size||shoppingTypes.has(item.type));
   const groups=new Map();needs.forEach(item=>{const name=item.category||'Sem categoria';(groups.get(name)||groups.set(name,[]).get(name)).push(item)});
   const registeredOrder=[...new Set(state.types.flatMap(type=>state.categories[type]||[]))],categoryIndex=new Map(registeredOrder.map((category,index)=>[category,index])),orderedGroups=[...groups.entries()].sort((a,b)=>shoppingCategorySort==='alpha'?a[0].localeCompare(b[0],'pt-BR'):(categoryIndex.get(a[0])??Number.MAX_SAFE_INTEGER)-(categoryIndex.get(b[0])??Number.MAX_SAFE_INTEGER)||a[0].localeCompare(b[0],'pt-BR'));
-  el('shoppingPage').innerHTML=`<section class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> PLANEJAMENTO</div><h1>Lista de compras</h1><p class="subhead">Itens marcados para repor.</p></div></section><div class="shopping-filter"><span class="shopping-filter-label">Filtrar por tipo</span><div id="shoppingTypeFilter" class="shopping-type-options" role="group" aria-label="Filtrar por um ou mais tipos"><label><input type="checkbox" value=""${!shoppingTypes.size?' checked':''}> <span>Todos os tipos</span></label>${state.types.map(type=>`<label><input type="checkbox" value="${escapeHtml(type)}"${shoppingTypes.has(type)?' checked':''}> <span>${escapeHtml(type)}</span></label>`).join('')}</div><label class="shopping-sort-label" for="shoppingCategorySort">Ordenar categorias</label><select id="shoppingCategorySort"><option value="created"${shoppingCategorySort==='created'?' selected':''}>Ordem cadastrada</option><option value="alpha"${shoppingCategorySort==='alpha'?' selected':''}>Ordem alfabética</option></select></div><section class="shopping-grid">${groups.size?orderedGroups.map(([category,items])=>`<article class="shopping-card"><div class="shopping-card-head"><span>○</span><h2>${escapeHtml(category)}</h2></div><ul>${items.sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(item=>`<li><input type="checkbox" aria-label="Marcar ${escapeHtml(item.name)} como comprado"><span>${escapeHtml(item.name)}</span><small>${itemQuantity(item)} ${escapeHtml(item.unit)}</small></li>`).join('')}</ul></article>`).join(''):'<div class="shopping-empty">Sua lista está vazia. Marque “Repor” no cartão de um item para incluí-lo aqui.</div>'}</section>`;
+  el('shoppingPage').innerHTML=`<section class="page-heading"><div><div class="eyebrow"><span class="eyebrow-dot"></span> PLANEJAMENTO</div><h1>Lista de compras</h1><p class="subhead">Itens marcados para repor.</p></div><button type="button" class="primary-btn" id="registerShoppingBtn">Registrar compras</button></section><div class="shopping-filter"><span class="shopping-filter-label">Filtrar por tipo</span><div id="shoppingTypeFilter" class="shopping-type-options" role="group" aria-label="Filtrar por um ou mais tipos"><label><input type="checkbox" value=""${!shoppingTypes.size?' checked':''}> <span>Todos os tipos</span></label>${state.types.map(type=>`<label><input type="checkbox" value="${escapeHtml(type)}"${shoppingTypes.has(type)?' checked':''}> <span>${escapeHtml(type)}</span></label>`).join('')}</div><label class="shopping-sort-label" for="shoppingCategorySort">Ordenar categorias</label><select id="shoppingCategorySort"><option value="created"${shoppingCategorySort==='created'?' selected':''}>Ordem cadastrada</option><option value="alpha"${shoppingCategorySort==='alpha'?' selected':''}>Ordem alfabética</option></select></div><section class="shopping-grid">${groups.size?orderedGroups.map(([category,items])=>`<article class="shopping-card"><div class="shopping-card-head"><span>○</span><h2>${escapeHtml(category)}</h2></div><ul>${items.sort((a,b)=>a.name.localeCompare(b.name,'pt-BR')).map(item=>`<li><input type="checkbox" data-shopping-item="${escapeHtml(item.id)}" aria-label="Marcar ${escapeHtml(item.name)} como comprado"><span>${escapeHtml(item.name)}</span><small>${itemQuantity(item)} ${escapeHtml(item.unit)}</small></li>`).join('')}</ul></article>`).join(''):'<div class="shopping-empty">Sua lista está vazia. Marque “Repor” no cartão de um item para incluí-lo aqui.</div>'}</section>`;
   el('shoppingTypeFilter').onchange=event=>{const value=event.target.value;if(!value)shoppingTypes=new Set();else if(event.target.checked)shoppingTypes.add(value);else shoppingTypes.delete(value);renderShoppingList()};
   el('shoppingCategorySort').onchange=event=>{shoppingCategorySort=event.target.value;renderShoppingList()};
+  el('registerShoppingBtn').onclick=registerShoppingPurchases;
   if(isPermanent){el('shoppingPage').querySelector('h1').textContent='Lista de compras permanentes';el('shoppingPage').querySelector('.subhead').textContent='Itens marcados para adquirir ou substituir.';el('shoppingPage').querySelector('.shopping-empty')?.replaceChildren(document.createTextNode('Sua lista está vazia. Marque “Adquirir” ou “Substituir” em um item para incluí-lo aqui.'))}
+}
+let registeringPurchases=false;
+async function registerShoppingPurchases(){
+  if(registeringPurchases)return;
+  const checked=[...el('shoppingPage').querySelectorAll('[data-shopping-item]')].filter(input=>input.checked);
+  if(!checked.length)return notify('Marque os itens comprados para registrar a entrada no estoque.');
+  const date=todayISODate();
+  let registered=0;
+  registeringPurchases=true;
+  try{
+    for(const input of checked){
+      const item=state.items.find(entry=>entry.id===input.dataset.shoppingItem);
+      if(!item)continue;
+      applyPurchaseMovement(item,date);
+      registered+=1;
+    }
+    if(!registered)return notify('Nenhum item encontrado para registrar.');
+    const saved=await persist();render();
+    const label=registered===1?'1 compra registrada':`${registered} compras registradas`;
+    notify(saved?`${label} e sincronizada${registered===1?'':'s'}.`:`${label} neste aparelho.`);
+  }finally{registeringPurchases=false}
 }
 document.querySelector('[data-page="resumo"]').onclick=()=>{setPage('resumo');setSidebarOpen(false)};
 document.querySelector('[data-page="compras"]').onclick=()=>{setPage('compras');setSidebarOpen(false)};
