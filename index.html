@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=50">
+  <link rel="stylesheet" href="styles.css?v=52">
 </head>
 <body>
   <div class="app-shell">
@@ -38,7 +38,7 @@
         <section class="inventory-section"><div class="section-heading"><div><h2 id="listTitle">Seus itens</h2><p>Encontre e acompanhe o que está guardado.</p></div></div>
           <div class="inventory-filters-sticky">
           <div class="filter-panel-head"><strong>Filtros</strong><span>Escolha o que deseja visualizar</span></div>
-          <div class="toolbar"><label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Buscar item..."></label><select id="typeFilter" aria-label="Filtrar por tipo"><option value="">Todos os tipos</option><option>Despensa</option><option>Beleza</option><option>Remédios</option></select><select id="categoryFilter" aria-label="Filtrar por categoria"><option value="">Todas as categorias</option></select><select id="placeFilter" aria-label="Filtrar por local"><option value="">Todos os locais</option></select><select id="sortFilter" aria-label="Ordenar"><option value="name">Nome A–Z</option><option value="quantity">Menor quantidade</option><option value="expiry">Validade próxima</option><option value="recent">Adicionados recentemente</option></select><button class="view-toggle active" title="Visualização em cartões">▦</button></div>
+          <div class="toolbar"><label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Buscar item..."></label><div class="multi-filter" data-filter="type"><button type="button" class="multi-filter-toggle" id="typeFilterToggle" aria-haspopup="true" aria-expanded="false">Todos os tipos</button><div class="multi-filter-panel" id="typeFilterPanel" data-filter="type" hidden></div></div><div class="multi-filter" data-filter="category"><button type="button" class="multi-filter-toggle" id="categoryFilterToggle" aria-haspopup="true" aria-expanded="false">Todas as categorias</button><div class="multi-filter-panel" id="categoryFilterPanel" data-filter="category" hidden></div></div><div class="multi-filter" data-filter="place"><button type="button" class="multi-filter-toggle" id="placeFilterToggle" aria-haspopup="true" aria-expanded="false">Todos os locais</button><div class="multi-filter-panel" id="placeFilterPanel" data-filter="place" hidden></div></div><select id="sortFilter" aria-label="Ordenar"><option value="name">Nome A–Z</option><option value="quantity">Menor quantidade</option><option value="expiry">Validade próxima</option><option value="recent">Adicionados recentemente</option></select><button class="view-toggle active" title="Visualização em cartões">▦</button></div>
           <div class="inventory-status-filter" role="group" aria-label="Filtrar itens por situação"><button type="button" data-stock-filter="in-stock" aria-pressed="false">Em estoque</button><button type="button" data-stock-filter="low-stock" aria-pressed="false">Estoque baixo</button><button type="button" data-stock-filter="out-of-stock" aria-pressed="false">Sem estoque</button><button type="button" data-stock-filter="replenish" aria-pressed="false">Repor</button><button type="button" data-stock-filter="do-not-replenish" aria-pressed="false">Não repor</button><button type="button" data-stock-filter="out-of-use" aria-pressed="false">Fora de uso</button></div></div><div id="itemsGrid" class="items-grid"></div><div id="emptyState" class="empty-state hidden"><span>◫</span><h3>Nenhum item por aqui ainda</h3><p>Adicione seus primeiros itens para começar a organizar a casa.</p><button class="primary-btn" id="emptyAddBtn">＋ Adicionar primeiro item</button></div>
         </section>
         <footer>Um lar mais leve começa com tudo no seu lugar <span>✳</span></footer>
@@ -54,7 +54,7 @@
   <div class="toast" id="toast"></div>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=51"></script>
+  <script src="app.js?v=54"></script>
   <script>if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});</script>
 </body>
 </html>
