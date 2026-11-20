@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=48">
+  <link rel="stylesheet" href="styles.css?v=50">
 </head>
 <body>
   <div class="app-shell">
@@ -18,7 +18,7 @@
       <a class="brand" href="#"><span class="brand-icon">⌂</span><span><b>casa em ordem</b><small>estoque da casa</small></span></a>
       <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Fechar menu">×</button>
       <div class="side-label">MENU</div>
-      <button class="nav-item active" data-page="estoque"><span>▦</span> Visão geral</button>
+      <button class="nav-item active" data-page="estoque"><span>▦</span> Consumíveis</button>
       <button class="nav-item" data-page="permanentes"><span>◆</span> Permanentes</button>
       <button class="nav-item" data-page="resumo"><span>◫</span> Resumo do estoque</button>
       <button class="nav-item" data-page="compras"><span>☑</span> Lista de compras</button>
@@ -32,7 +32,7 @@
     <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
 
     <main class="main-area">
-      <header class="topbar"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button><div class="breadcrumbs">Sua casa <span>›</span> <b id="crumb">Visão geral</b></div><div class="top-actions"><button class="icon-btn" id="exportBtn" title="Exportar backup">⇩</button><button class="avatar" title="Casa">C</button></div></header>
+      <header class="topbar"><button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">☰</button><div class="breadcrumbs">Sua casa <span>›</span> <b id="crumb">Consumíveis</b></div><div class="top-actions"><button class="icon-btn" id="exportBtn" title="Exportar backup">⇩</button><button class="avatar" title="Casa">C</button></div></header>
       <div class="content" id="pageContent">
         <section class="welcome-row"><div><div class="eyebrow"><span class="eyebrow-dot"></span> ORGANIZAÇÃO DO LAR</div><h1>Estoque da casa</h1><p class="subhead">Tudo o que você tem, em cada cantinho da casa.</p></div><button class="primary-btn" id="addItemBtn"><span>＋</span> Adicionar item</button></section>
         <section class="inventory-section"><div class="section-heading"><div><h2 id="listTitle">Seus itens</h2><p>Encontre e acompanhe o que está guardado.</p></div></div>
@@ -54,7 +54,7 @@
   <div class="toast" id="toast"></div>
   <script src="supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=49"></script>
+  <script src="app.js?v=51"></script>
   <script>if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});</script>
 </body>
 </html>
