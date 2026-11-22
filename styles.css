@@ -82,3 +82,29 @@
 .inventory-filters-sticky .multi-filter-toggle{background:#fff;border-color:#d9e3d8}
 @media(max-width:700px){.multi-filter{flex:1 1 calc(50% - 4px);max-width:none}.multi-filter-toggle{width:100%;font-size:9px}}
 
+/* Lista de compras: recolher os cards de cada categoria. */
+.shopping-card-head h2{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shopping-collapse{display:grid;place-items:center;flex:none;width:26px;height:26px;margin-left:auto;padding:0;border:1px solid #ffffffb3;border-radius:8px;background:#ffffff66;color:#3f5145;font-family:inherit;font-size:11px;line-height:1;transition:transform .18s ease,background .18s ease}
+.shopping-collapse:hover{background:#ffffffcc}
+.shopping-collapse:focus-visible{outline:2px solid #7aa789;outline-offset:1px}
+.shopping-card.collapsed .shopping-collapse{transform:rotate(-90deg)}
+.shopping-card.collapsed ul{display:none}
+.shopping-card.collapsed{min-height:0}
+
+/* Seletor de agrupamento dos cards da lista de compras. */
+.shopping-filter{flex-wrap:wrap}
+.shopping-group-btn{display:flex;align-items:center;gap:6px;flex:none;border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff;color:#536055;font-family:inherit;font-size:11px;font-weight:600;white-space:nowrap}
+.shopping-group-btn small{color:#879188;font-size:12px;line-height:1}
+.shopping-group-btn:hover{background:#f2f8f3;color:#326b51}
+.shopping-group-btn:focus-visible{outline:2px solid #8db99a;outline-offset:1px}
+@media(max-width:700px){.shopping-group-btn{width:100%;justify-content:center}}
+
+/* Cor personalizada de tipos, categorias e locais. */
+.manage-row{flex-wrap:wrap}
+.color-field{display:flex;align-items:center;gap:6px;color:#68746b;font-size:10px;font-weight:600;white-space:nowrap}
+.color-field input[type=checkbox]{accent-color:#5d9270;margin:0}
+.color-field input[type=color]{width:34px;height:28px;padding:2px;border:1px solid var(--line);border-radius:7px;background:#fff;cursor:pointer}
+.color-field input[type=color]:disabled{opacity:.45;cursor:default}
+.type-edit-fields .color-field{justify-self:start}
+
+
