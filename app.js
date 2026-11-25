@@ -377,29 +377,34 @@ render=function(){renderWithPages();if(currentPage==='resumo')renderSummary();if
 
 function orderingButtons(selector,onMove){
   el('simpleContent').querySelectorAll(selector).forEach(editButton=>{
-    const index=Number(editButton.dataset.index),row=editButton.closest('.manage-row');if(!row||row.querySelector('[data-order-up]'))return;
-    [['↓','down'],['↑','up']].forEach(([label,direction])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.title=direction==='up'?'Mover para cima':'Mover para baixo';button.dataset[direction==='up'?'orderUp':'orderDown']='';button.onclick=()=>onMove(index,direction);row.insertBefore(button,editButton.nextSibling)});
+    const row=editButton.closest('.manage-row');if(!row||row.querySelector('[data-order-up]'))return;
+    [['↓','down'],['↑','up']].forEach(([label,direction])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.title=direction==='up'?'Mover para cima':'Mover para baixo';button.dataset[direction==='up'?'orderUp':'orderDown']='';button.onmousedown=event=>event.preventDefault();button.onclick=event=>{const currentRow=button.closest('.manage-row'),list=currentRow?.parentElement;if(!list)return;const index=[...list.children].indexOf(currentRow),target=index+(direction==='up'?-1:1);if(target<0||target>=list.children.length)return;const targetRow=list.children[target],scrollers=[currentRow.closest('.manage-list'),currentRow.closest('.modal')].filter(Boolean).map(node=>[node,node.scrollTop]);if(!onMove(index,direction))return;list.insertBefore(currentRow,direction==='up'?targetRow:targetRow.nextSibling);[...list.children].forEach((item,position)=>item.querySelectorAll('[data-index]').forEach(action=>action.dataset.index=position));if(event.detail===0)try{button.focus({preventScroll:true})}catch{button.focus()}const restoreScroll=()=>scrollers.forEach(([node,top])=>{if(node.scrollTop!==top)node.scrollTop=top});restoreScroll();requestAnimationFrame(restoreScroll)};row.insertBefore(button,editButton.nextSibling)});
   });
 }
 function moveInList(list,index,direction){const target=index+(direction==='up'?-1:1);if(target<0||target>=list.length)return false;[list[index],list[target]]=[list[target],list[index]];return true}
+let orderChangeTimer=null,orderSyncTimer=null,orderPendingSync=false;
+function persistOrderLocally(){stateRevision++;state.updatedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(state));localStorage.setItem(PENDING_KEY,session?.user?.id||localStorage.getItem('casa-em-ordem-sync-owner')||'local')}catch(error){console.error('Falha ao salvar a ordem neste aparelho:',error);notify('Não foi possível salvar a ordem neste aparelho.')}}
+function flushOrderSync(){clearTimeout(orderChangeTimer);orderChangeTimer=null;clearTimeout(orderSyncTimer);orderSyncTimer=null;if(!orderPendingSync)return;orderPendingSync=false;persistOrderLocally();if(!session?.user){setSyncStatus(false,'Entre na conta para salvar no Supabase e sincronizar');return}syncPush().then(synced=>{if(!synced)notify('Ordem salva neste aparelho; sincronização pendente.')})}
+function scheduleOrderUpdate(){orderPendingSync=true;clearTimeout(orderChangeTimer);orderChangeTimer=setTimeout(()=>{orderChangeTimer=null;persistOrderLocally()},300);clearTimeout(orderSyncTimer);orderSyncTimer=setTimeout(flushOrderSync,3000)}
+window.addEventListener('pagehide',()=>{if(!orderPendingSync)return;orderPendingSync=false;clearTimeout(orderChangeTimer);persistOrderLocally()});
 const manageWithOrdering=manage;
 manage=function(which,editingIndex=null){
   manageWithOrdering(which,editingIndex);
   if(which!=='places'||editingIndex!==null)return;
-  orderingButtons('[data-manage-action="edit"]',async(index,direction)=>{if(!moveInList(state.places,index,direction))return;const synced=await persist();render();manage('places');if(!synced)notify('Ordem salva neste aparelho; sincronização pendente.')});
+  orderingButtons('[data-manage-action="edit"]',(index,direction)=>{if(!moveInList(state.places,index,direction))return false;scheduleOrderUpdate();return true});
 };
 const manageCategoriesWithOrdering=manageCategoriesAdvanced;
 manageCategoriesAdvanced=function(editingIndex=null,selectedType=el('itemType').value){
   manageCategoriesWithOrdering(editingIndex,selectedType);
   if(editingIndex!==null)return;
   const type=state.types.includes(selectedType)?selectedType:state.types[0]||'';
-  orderingButtons('[data-category-action="edit"]',async(index,direction)=>{const list=state.categories[type]||[];if(!moveInList(list,index,direction))return;const synced=await persist();render();manageCategoriesAdvanced(null,type);if(!synced)notify('Ordem salva neste aparelho; sincronização pendente.')});
+  orderingButtons('[data-category-action="edit"]',(index,direction)=>{const list=state.categories[type]||[];if(!moveInList(list,index,direction))return false;scheduleOrderUpdate();return true});
 };
 const manageTypesWithOrdering=manageTypes;
 manageTypes=function(editingIndex=null){
   manageTypesWithOrdering(editingIndex);
   if(editingIndex!==null)return;
-  orderingButtons('[data-type-action="edit"]',async(index,direction)=>{if(!moveInList(state.types,index,direction))return;const synced=await persist();render();manageTypes();if(!synced)notify('Ordem salva neste aparelho; sincronização pendente.')});
+  orderingButtons('[data-type-action="edit"]',(index,direction)=>{if(!moveInList(state.types,index,direction))return false;scheduleOrderUpdate();return true});
 };
 const manageWithInventoryContext=manage;
 manage=function(which,editingIndex=null){manageWithInventoryContext(which,editingIndex);if(inventoryMode==='permanent')el('simpleTitle').textContent+=(el('simpleTitle').textContent.includes('Permanentes')?'':' · Permanentes')};
