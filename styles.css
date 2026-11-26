@@ -99,6 +99,14 @@
 .shopping-group-btn:focus-visible{outline:2px solid #8db99a;outline-offset:1px}
 @media(max-width:700px){.shopping-group-btn{width:100%;justify-content:center}}
 
+/* Flag "Momento" na lista de compras permanentes. */
+.shopping-card li > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.moment-flag{display:inline-flex;align-items:center;gap:4px;flex:none;padding:2px 6px;border:1px solid #d9e3d8;border-radius:999px;background:#f7faf7;color:#5f6d63;font-size:9px;font-weight:700;letter-spacing:.2px;white-space:nowrap;cursor:pointer}
+.moment-flag:hover{background:#eef5ef}
+.moment-flag input{accent-color:#b78a3d;margin:0}
+.moment-flag.active{border-color:#e2c47f;background:#fdf3dc;color:#7d5e18}
+.moment-flag span{line-height:1}
+
 /* Cor personalizada de tipos, categorias e locais. */
 .manage-row{flex-wrap:wrap}
 .color-field{display:flex;align-items:center;gap:6px;color:#68746b;font-size:10px;font-weight:600;white-space:nowrap}

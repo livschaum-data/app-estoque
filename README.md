@@ -27,4 +27,6 @@ O app é instalável como atalho de tela inicial em navegadores compatíveis e m
 
 Cada item mantém um histórico de compras e reposições, com data, quantidade e valor opcional. O estoque soma a quantidade que ainda existe em cada compra; qualquer compra pode ser editada para informar quanto ainda existe e quanto já acabou. Compras antigas sem quantidade registrada contam como uma unidade cada. Sem compras, a quantidade pode ser informada manualmente.
 
+Os itens permanentes marcados com **Adquirir** ou **Substituir** entram em **Compras permanentes**. Nessa lista, a flag **Momento** destaca os itens que devem aparecer também em **Compras do momento**, uma lista curta para a próxima saída. Ao registrar a compra, a marcação do momento é removida.
+
 Para um passo a passo ilustrado da configuração no painel Supabase, consulte [GUIA_SUPABASE.md](./GUIA_SUPABASE.md).
